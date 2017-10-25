@@ -1,5 +1,5 @@
 import graph
-
+from collections import deque
 
 def read_topo_sort_from_file(filename):
     """This reads the first line of the file. In a topological sort solution file,
@@ -48,7 +48,29 @@ def compute_tps(filename):
     """ <filename> is the name of the input file containing graph information:
     you need to read it in and perform the topological sort, saving the results
     in tps, then use write_tps_to_file() to output it to a file called output_<filename>"""
+    fileDict = graph.read_graph(filename)
+
+    inDegrees = { u : 0 for u in fileDict}
+
+    for u in fileDict:
+        for v in fileDict[u]:
+            inDegrees[v] += 1
+
+    que = deque()
+    for u in inDegrees:
+        if inDegrees[u]==0:
+            que.appendleft(u)
+
     tps = []
+
+    while que:
+        u = que.pop()
+        tps.append(u)
+        for v in fileDict[u]:
+            inDegrees[v]-=1
+            if inDegrees == 0:
+                que.appendleft(v)
+    
     write_tps_to_file(tps, filename)
 
 
