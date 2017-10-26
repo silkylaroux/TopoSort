@@ -39,7 +39,7 @@ def check_TPS(graph, tps):
 def write_tps_to_file(tps, filename):
     with open('output_' + filename, 'w') as file:
         for node in tps:
-            file.write(node + ' ')
+            file.write(str(node) + ' ')
 
 
 def compute_tps(filename):
@@ -48,30 +48,52 @@ def compute_tps(filename):
     """ <filename> is the name of the input file containing graph information:
     you need to read it in and perform the topological sort, saving the results
     in tps, then use write_tps_to_file() to output it to a file called output_<filename>"""
+    
+    #gets the directed graph from a file
     fileDict = graph.read_graph(filename)
 
-    inDegrees = { u : 0 for u in fileDict}
-
-    for u in fileDict:
-        for v in fileDict[u]:
-            inDegrees[v] += 1
-
-    que = deque()
-    for u in inDegrees:
-        if inDegrees[u]==0:
-            que.appendleft(u)
-
-    tps = []
-
-    while que:
-        u = que.pop()
-        tps.append(u)
-        for v in fileDict[u]:
-            inDegrees[v]-=1
-            if inDegrees == 0:
-                que.appendleft(v)
-    
+    #calls a recursive toposort and puts it in tps
+    tps = recursive_topsort(fileDict)
     write_tps_to_file(tps, filename)
+
+def recursive_topsort(graph):         # recursive TopoSort
+    # list that will hold node ordering
+    helper = []      
+    # must map each node in graph to white                
+    color = { u : "white" for u in graph }
+    # temp var to know if u was reached 
+    was_found = False
+    
+
+    for u in graph:
+        if color[u] == "white":
+            topo_visit(graph, u, color, helper, was_found)
+        if was_found:
+            break
+ 
+    
+    if was_found:           # if there is a cycle, 
+        helper = []         # then return an empty list  
+    
+    # reverse the list to get Correct ordered list
+    helper.reverse()        
+    return helper                     
+ 
+ 
+def topo_visit(graph, u, color, L, found):
+    if found:
+        return
+    color[u] = "gray"
+    for v in graph[u]:
+        if color[v] == "gray":
+            found = True
+            return
+        if color[v] == "white":
+            topo_visit(graph, v, color, L, found)
+    color[u] = "black"      # when we're done with u,
+    L.append(u)             # add u to list
+
+
 
 
 if __name__ == '__main__':
